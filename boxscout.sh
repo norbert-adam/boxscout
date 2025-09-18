@@ -2,6 +2,8 @@
 
 APP_NAME="BoxScout"
 
+COMMANDS=("sudo nmap -T4 -sn 192.168.50.0/24" "ls -la; sleep 2")
+
 # Function to resolve absolute script path
 get_script_path() {
     if [[ $0 == /* ]]; then
@@ -10,8 +12,6 @@ get_script_path() {
         echo "$(pwd)/$0"
     fi
 }
-
-
 
 main() {
 
@@ -27,9 +27,13 @@ main() {
         exit 0
     fi
 
+    i=0
     while true; do
+        if [[ $i -ge ${#COMMANDS[@]} ]]; then
+            break
+        fi
         # Prompt for user input
-        read -r -p "Enter a command to run (or 'quit' to exit): " USER_INPUT
+        # read -r -p "Enter a command to run (or 'quit' to exit): " USER_INPUT
 
         # Handle exit
         if [ "$USER_INPUT" = "quit" ]; then
@@ -41,7 +45,8 @@ main() {
         CHANNEL="channel_$(date +%s)_$RANDOM"
 
         # Determine the command based on input (example: echo it back, or customize logic)
-        cmd="$USER_INPUT"  # Replace with your logic, e.g., case "$USER_INPUT" in ... esac
+        # cmd="$USER_INPUT"  # Replace with your logic, e.g., case "$USER_INPUT" in ... esac
+        cmd=${COMMANDS[i]}
 
         # Split window, run cmd in new pane, and have it self-kill when done
         tmux split-window -h -p 70 -PF "#{pane_id}" "$cmd; sleep 2; tmux wait-for -S $CHANNEL" > /dev/null
@@ -51,6 +56,7 @@ main() {
 
         # Optional: Reset layout or notify
         echo "Command finished. Ready for next input."
+        ((i++))
     done
 
     # Clean up session on exit
